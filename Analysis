@@ -1,5 +1,5 @@
---SQL was used for organizing and exploring data and Tableau was used for Visualization
---Two csv files were used: 2020_Olympics_Dataset and TOkyo_Olympic_Medals_Official
+--SQL was used for organizing and exploring data and Tableau was used for visualization
+--Two csv files were used: 2020_Olympics_Dataset and Tokyo_Olympic_Medals_Official
 
 
 --Medal count by country and percent of medals
