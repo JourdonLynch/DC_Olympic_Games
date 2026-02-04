@@ -2,108 +2,82 @@
 --Two csv files were used: 2020_Olympics_Dataset and Tokyo_Olympic_Medals_Official
 
 
---Medal count by country and percent of medals
 SELECT
-RANK() OVER(ORDER BY Total DESC) AS Rank,
-Country,
-Gold,
-ROUND(SUM(Gold)/SUM(SUM(Gold)) OVER()*(100),2) AS Perc_of_Gold,
-Silver,
-ROUND(SUM(Silver)/SUM(SUM(SILVER)) OVER()*(100),2) AS Perc_of_Silver,
-Bronze,
-ROUND(SUM(Bronze)/SUM(SUM(Bronze)) OVER()*(100),2) AS Perc_of_Bronze,
-Total,
-ROUND(Total/SUM(Total) OVER()*(100),2) AS Perc_of_Medals
-FROM
-Tokyo_Games_v2.medals_official
-GROUP BY
-Country,
-total,
-Gold,
-Silver,
-Bronze
-ORDER BY
-Total DESC
+  RANK() OVER(ORDER BY Total DESC) AS Rank,
+  Country,
+  Gold,
+  ROUND(Gold*100.0/SUM(Gold) OVER(),2) AS Perc_of_Gold,
+  Silver,
+  ROUND(Silver*100.0/SUM(Silver) OVER(),2) AS Perc_of_Silver,
+  Bronze,
+  ROUND(Bronze*100.0/SUM(Bronze) OVER(),2) AS Perc_of_Bronze,
+  Total,
+  ROUND(Total*100.0/SUM(Total) OVER(),2) AS Perc_of_Medals
+FROM Tokyo_Games_v2.medals_official
+ORDER BY Total DESC;
 
 
---Percent of athletes in shared disciplines
+
+Percent of athletes in shared disciplines:
+
     -GRY and SWA record null values for multiple columns as they are women only events
 
-WITH
-  Men AS (
+WITH Men AS (
   SELECT
     Discipline,
-    COUNT(DISTINCT CODE) AS Male_Athletes
-  FROM
-    Tokyo_Games_v2.Olympic_Data
-  WHERE
-    Gender = 'Male'
-  GROUP BY
-    Discipline),
-
-  Women AS (
+    COUNT(DISTINCT code) AS Male_Athletes
+  FROM Tokyo_Games_v2.Olympic_Data
+  WHERE Gender = 'Male'
+  GROUP BY Discipline
+),
+Women AS (
   SELECT
     Discipline,
-    COUNT(DISTINCT CODE) AS Female_Athletes
-  FROM
-    Tokyo_Games_v2.Olympic_Data
-  WHERE
-    Gender = 'Female'
-  GROUP BY
-    Discipline)
+    COUNT(DISTINCT code) AS Female_Athletes
+  FROM Tokyo_Games_v2.Olympic_Data
+  WHERE Gender = 'Female'
+  GROUP BY Discipline
+)
 
 SELECT
-  OD.discipline,
-  COUNT(DISTINCT CODE) AS Total_Athletes,
+  COALESCE(m.Discipline, w.Discipline) AS Discipline,
+  Male_Athletes + Female_Athletes AS Total_Athletes,
   Male_Athletes,
-  ROUND((SUM(Male_Athletes)/(SUM(Male_Athletes) + SUM(Female_Athletes))),2) AS Perc_Male,
+  ROUND(
+    Male_Athletes * 1.0 / (Male_Athletes + Female_Athletes),
+    2
+  ) AS Perc_Male,
   Female_Athletes,
-  ROUND((SUM(Female_Athletes)/(SUM(Male_Athletes) + SUM(Female_Athletes))),2) AS Perc_Female
-FROM
-  Tokyo_Games_v2.Olympic_Data AS OD
-FULL JOIN
-  Men
-ON
-  (Men.Discipline=OD.Discipline)
-FULL JOIN
-  Women
-ON
-  (Women.Discipline=OD.Discipline)
-
-GROUP BY
-  discipline,
-  Male_Athletes,
-  Female_Athletes
+  ROUND(
+    Female_Athletes * 1.0 / (Male_Athletes + Female_Athletes),
+    2
+  ) AS Perc_Female
+FROM Men m
+FULL JOIN Women w
+  ON m.Discipline = w.Discipline
+ORDER BY Discipline;
 
 
---Count and percent of athletes by country
+Count and percent of athletes by country:
 SELECT
-  COALESCE(noc,'All Countries') AS Country,
-  COUNT(Name) AS Count_of_Athletes,
-  (ROUND((COUNT(name)/SUM(COUNT(name))OVER())*(100),2))*2 AS Percent_of_Athletes
-FROM
-  Tokyo_Olympics.Athletes
-GROUP BY
-  ROLLUP(noc)
-ORDER BY
-  Count_of_Athletes desc
+  COALESCE(noc, 'All Countries') AS Country,
+  COUNT(DISTINCT code) AS Count_of_Athletes,
+  ROUND(
+    COUNT(DISTINCT code) * 100.0 /
+    SUM(
+      CASE 
+        WHEN GROUPING(noc) = 0 THEN COUNT(DISTINCT code)
+      END
+    ) OVER (),
+    2
+  ) AS Percent_of_Athletes
+FROM Tokyo_Games_v2.Olympic_Data
+GROUP BY ROLLUP(noc)
+ORDER BY Count_of_Athletes DESC;
 
 
 
---Count and percent of athletes by country
-SELECT
- COALESCE(Noc,'All Countries') AS Country,
- COUNT(DISTINCT CODE) AS Count_of_Athletes,
- ROUND((COUNT(DISTINCT CODE)*(100)/ SUM(COUNT(DISTINCT CODE)) OVER()),2) AS Percent_of_Athletes
-FROM
- Tokyo_Games_v2.Olympic_Data
-GROUP BY
- ROLLUP(noc)
-ORDER BY
- Count_of_Athletes desc
-
-
---Average athlete age by country
+Average athlete age by country:
 SELECT
  Country,
  ROUND(AVG(AGE),2) Avg_Age
