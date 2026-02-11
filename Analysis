@@ -1,8 +1,8 @@
---SQL was used for organizing and exploring data and Tableau was used for visualization
---Two csv files were used: 2020_Olympics_Dataset and Tokyo_Olympic_Medals_Official
+-- SQL was used for organizing and exploring data and Tableau was used for visualization
+-- Two csv files were used: 2020_Olympics_Dataset and Tokyo_Olympic_Medals_Official
 
 
-Percent of total and individual medals by country:
+-- Percent of total and individual medals by country
 SELECT
   RANK() OVER(ORDER BY Total DESC) AS Rank,
   Country,
@@ -19,9 +19,9 @@ ORDER BY Total DESC;
 
 
 
-Percent of athletes in shared disciplines:
+-- Percent of athletes in shared disciplines
 
-    -GRY and SWA record null values for multiple columns as they are women only events
+    --GRY and SWA record null values for multiple columns as they are women only events
 
 WITH Men AS (
   SELECT
@@ -59,7 +59,7 @@ FULL JOIN Women w
 ORDER BY Discipline;
 
 
-Count and percent of athletes by country:
+-- Count and percent of athletes by country
 SELECT
   COALESCE(noc, 'All Countries') AS Country,
   COUNT(DISTINCT code) AS Count_of_Athletes,
@@ -78,7 +78,8 @@ ORDER BY Count_of_Athletes DESC;
 
 
 
-Average athlete age by country:
+-- Average athlete age by country
+
 SELECT
  Country,
  ROUND(AVG(AGE),2) Avg_Age
