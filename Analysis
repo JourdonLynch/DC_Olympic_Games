@@ -2,6 +2,7 @@
 --Two csv files were used: 2020_Olympics_Dataset and Tokyo_Olympic_Medals_Official
 
 
+Percent of total and individual medals by country:
 SELECT
   RANK() OVER(ORDER BY Total DESC) AS Rank,
   Country,
